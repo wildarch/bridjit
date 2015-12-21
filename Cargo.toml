@@ -1,0 +1,11 @@
+[package]
+
+name = "jitterbug"
+version = "0.0.1"
+authors = [ "Daan de Graaf <daandegraaf9@gmail.com>" ]
+
+[[bin]]
+name = "jitterbug"
+
+[dependencies]
+libc = "0.2.4"

@@ -1,0 +1,56 @@
+
+
+eax contains the data pointer
+
+"." - Output byte
+push    eax
+mov     ecx,  [eax]                         ;message to write
+mov     eax,  4                             ;system call number (sys_write)
+mov     ebx,  1                             ;file descriptor (stdout)
+
+mov     edx,  1                             ;message length
+pop     eax
+int     0x80                                ;call kernel
+
+{ 0x50, 0x8B, 0x08, 0xB8, 0x04, 0x00, 0x00, 0x00, 0xBB, 0x01, 0x00, 0x00, 0x00, 0xBA, 0x01, 0x00, 0x00, 0x00, 0xCD, 0x80, 0x58 }
+
+"," - Read byte
+push  eax
+mov   ecx,  [eax]
+mov   eax,  3
+mov   ebx,  0              ; 0 = stdin
+
+mov   edx,  1
+int   0x80
+pop   eax
+
+{ 0x50, 0x8B, 0x08, 0xB8, 0x03, 0x00, 0x00, 0x00, 0xBB, 0x00, 0x00, 0x00, 0x00, 0xBA, 0x01, 0x00, 0x00, 0x00, 0xCD, 0x80, 0x58 }
+
+
+">" - Increment pointer
+inc     eax
+
+{ 0x40 }
+
+"<" - Decrement pointer
+dec     eax
+
+{ 0x48 }
+
+"+" - Increment data
+inc DWORD PTR [eax]
+
+{ 0xFF, 0x00 }
+
+"-" - Decrement data
+dec     DWORD PTR [eax]
+
+{ 0xFF, 0x08 }
+
+"[" - Loop start
+LOOP_START:
+cmp     [eax],  0     ; 0x83, 0x38, 0x00
+je      $LOOP_END     ; 0x74, {number of skipped bytes}
+
+"]" - Loop end
+jmp     {number of bytes to go back+2, negative in two's complement}
