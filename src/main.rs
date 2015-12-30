@@ -3,9 +3,6 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::mem;
 
-extern crate time;
-use time::{PreciseTime};
-
 mod jit;
 use jit::mem::JitMemory;
 
@@ -18,6 +15,7 @@ const INPUT : &'static [u8] = &[0x50, 0x48, 0x89, 0xC6, 0x48, 0xC7, 0xC0, 0x00, 
 const LOOP_START : &'static [u8] = &[0x48, 0x80, 0x38, 0x00, 0x0F, 0x84, 0x00, 0x00, 0x00, 0x00];             //Last byte becomes offset
 const LOOP_END : &'static [u8] = &[0x48, 0x80, 0x38, 0x00, 0x0F, 0x85, 0x00, 0x00, 0x00, 0x00];               //Last bytes becomes offset
 const LOOP_START_OFF : i32 = 6;
+#[allow(dead_code)]
 const OK : &'static [u8] = &[0x50, 0x48, 0xC7, 0xC7, 0x4F, 0x4B, 0x00, 0x00, 0x57, 0x48, 0xC7, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x48, 0xC7, 0xC2, 0x02, 0x00, 0x00, 0x00, 0x48, 0x89, 0xE6, 0x48, 0xC7, 0xC7, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x05, 0x5F, 0x58];
 
 const CELLS : usize = 30000;
@@ -73,10 +71,8 @@ fn main(){
     let function = jit.as_fn();
     println!("Jit ready (size: {} bytes), executing...", jit.position);
     println!("---[JIT STARTS HERE]---");
-    let start = PreciseTime::now();
-    function(addr);
-    let end = PreciseTime::now();
+    let ret = function(addr);
     println!("\n---[JIT ENDS HERE]---");
-    println!("Jit exited after {} ms", start.to(end).num_milliseconds());
+    println!("Jit exited, code: {}", ret);
 
 }
