@@ -1,6 +1,6 @@
 [root]
-name = "jitterbug"
-version = "0.0.1"
+name = "bridjit"
+version = "0.2.0"
 dependencies = [
  "libc 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

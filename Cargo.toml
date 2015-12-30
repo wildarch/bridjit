@@ -1,11 +1,11 @@
 [package]
 
-name = "jitterbug"
-version = "0.0.1"
+name = "bridjit"
+version = "0.2.0"
 authors = [ "Daan de Graaf <daandegraaf9@gmail.com>" ]
 
 [[bin]]
-name = "jitterbug"
+name = "bridjit"
 
 [dependencies]
 libc = "0.2.4"

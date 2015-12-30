@@ -1,5 +1,6 @@
 use std::mem;
 use std::ops::{Index, IndexMut};
+use jit::ops::BranchOperation;
 
 extern crate libc;
 
@@ -11,7 +12,7 @@ pub struct JitMemory {
     pub size: usize
 }
 
-#[allow(unused_mut, dead_code)]
+#[allow(unused_mut)]
 impl JitMemory {
     pub fn new(pages: usize) -> JitMemory {
         let size = pages * PAGE_SIZE;
@@ -34,12 +35,6 @@ impl JitMemory {
         }
     }
 
-    pub fn as_fn_par<T>(&self) -> (fn(a: T, b: T, c: T, d: T) -> i64) {
-        unsafe {
-            mem::transmute(self.contents)
-        }
-    }
-
     unsafe fn get_page(size : usize) -> *mut libc::c_void {
         let mut page: *mut libc::c_void = mem::uninitialized();
         libc::posix_memalign(&mut page, PAGE_SIZE, size);
@@ -47,13 +42,6 @@ impl JitMemory {
         libc::mprotect(page, size, permissions);
         memset(page, 0xc3, size);
         return page;
-    }
-
-    pub fn contents_addr(&self) -> u64 {
-        let ptr : *mut u8 = self.contents;
-        unsafe {
-            mem::transmute(ptr) //Address to u64
-        }
     }
 
     pub fn put_one(&mut self, data : u8) -> &mut Self {
@@ -66,21 +54,28 @@ impl JitMemory {
         self
     }
 
-    pub fn put(&mut self, data: &[u8]) {
-        for op in data {
+    pub fn put<T: Into<Box<[u8]>>>(&mut self, data: T) {
+        for op in data.into().iter() {
             self.put_one(*op);
         }
     }
 
-    pub fn put_offset(&mut self, off: i32, data: i32) {
+    pub fn put_branch(&mut self, op: BranchOperation) -> usize {
+        self.put(op.content);
+        return self.position - 4
+    }
+
+    pub fn put_offset(&mut self, index: usize, data: i32) {
         unsafe {
             let bytes : [u8; 4] = mem::transmute(data);
-            for i in 0..4{
-                self[(off+i) as usize] = bytes[i as usize];
+            for i in 0..4 as usize {
+                assert_eq!(self[index+i], 0x00);
+                self[(index+i)] = bytes[i as usize];
             }
         }
     }
 
+    #[allow(dead_code)]
     pub fn disp(&self) {
         for i in 0..self.position {
             print!("{:X} ", self[i as usize]);
