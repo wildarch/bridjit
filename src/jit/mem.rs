@@ -7,10 +7,11 @@ const PAGE_SIZE: usize = 4096;
 
 pub struct JitMemory {
     contents: *mut u8,
-    position: isize,
+    pub position: usize,
+    pub size: usize
 }
 
-#[allow(unused_mut)]
+#[allow(unused_mut, dead_code)]
 impl JitMemory {
     pub fn new(pages: usize) -> JitMemory {
         let size = pages * PAGE_SIZE;
@@ -22,11 +23,18 @@ impl JitMemory {
         JitMemory {
             contents: contents,
             position: 0,
+            size: size
         }
 
     }
 
-    pub fn as_fn(&self) -> (fn() -> i64) {
+    pub fn as_fn(&self) -> (fn(a: u64) -> i64) {
+        unsafe {
+            mem::transmute(self.contents)
+        }
+    }
+
+    pub fn as_fn_par<T>(&self) -> (fn(a: T, b: T, c: T, d: T) -> i64) {
         unsafe {
             mem::transmute(self.contents)
         }
@@ -48,12 +56,35 @@ impl JitMemory {
         }
     }
 
-    pub fn put(&mut self, data : u8) -> &mut Self {
+    pub fn put_one(&mut self, data : u8) -> &mut Self {
+        if self.position == self.size { panic!("VM Memory limit reached: {}", self.size) }
         unsafe {
-            *self.contents.offset(self.position) = data;
+            *self.contents.offset(self.position as isize) = data;
         }
         self.position += 1;
+
         self
+    }
+
+    pub fn put(&mut self, data: &[u8]) {
+        for op in data {
+            self.put_one(*op);
+        }
+    }
+
+    pub fn put_offset(&mut self, off: i32, data: i32) {
+        unsafe {
+            let bytes : [u8; 4] = mem::transmute(data);
+            for i in 0..4{
+                self[(off+i) as usize] = bytes[i as usize];
+            }
+        }
+    }
+
+    pub fn disp(&self) {
+        for i in 0..self.position {
+            print!("{:X} ", self[i as usize]);
+        }
     }
 }
 

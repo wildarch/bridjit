@@ -9,3 +9,4 @@ name = "jitterbug"
 
 [dependencies]
 libc = "0.2.4"
+time = "*"
