@@ -10,7 +10,7 @@ use jit::ops::{self, Operation, BranchOperation};
 const CELLS : usize = 30000;
 
 fn main(){
-    let file_name = env::args().nth(1).unwrap();
+    let file_name = env::args().nth(1).expect("You need to specify the brainfuck source file");
     let mut jit = JitMemory::new(100);  //Should be enough for most brainfuck programs (100Kb)
 
     //The array of cells
@@ -28,7 +28,7 @@ fn main(){
 
     let mut offset_indices = Vec::new();
 
-    for byte in File::open(file_name).unwrap().bytes(){
+    for byte in File::open(file_name).expect("The path must be a valid and point to a file").bytes(){
         let character = byte.unwrap() as char;
         match character {
             '+' => jit.put(Operation::inc_data()),
