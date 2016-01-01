@@ -1,5 +1,5 @@
 use std::mem;
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, Drop};
 use jit::ops::BranchOperation;
 
 extern crate libc;
@@ -94,6 +94,14 @@ impl Index<usize> for JitMemory {
 impl IndexMut<usize> for JitMemory {
     fn index_mut(&mut self, _index: usize) -> &mut u8 {
         unsafe {&mut *self.contents.offset(_index as isize) }
+    }
+}
+
+impl Drop for JitMemory {
+    fn drop(&mut self){
+        unsafe {
+            libc::free(self.contents as *mut libc::c_void);
+        }
     }
 }
 
